@@ -1,10 +1,12 @@
+package entity;
+
 public class StudentSubject {
 
     private Integer markValue;
 
-    private Integer interestValue;
+    private Integer interestValue = 2;
 
-    private Student student;
+    private String studentName;
 
     private Subject subject;
 
@@ -13,14 +15,16 @@ public class StudentSubject {
     public StudentSubject(Integer markValue, Integer interestValue, Student student, Subject subject) {
         this.markValue = markValue;
         this.interestValue = interestValue;
-        this.student = student;
+        this.studentName = student.getName();
         this.subject = subject;
     }
 
     public StudentSubject(Integer interestValue, Student student, Subject subject) {
         this.interestValue = interestValue;
-        this.student = student;
+        this.studentName = student.getName();
         this.subject = subject;
+
+        student.getEduGraph().getPossibleSubjects().add(this);
     }
 
     public Integer getMarkValue() {
@@ -39,14 +43,6 @@ public class StudentSubject {
         this.interestValue = interestValue;
     }
 
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
-    }
-
     public Subject getSubject() {
         return subject;
     }
@@ -63,8 +59,22 @@ public class StudentSubject {
         this.userValue = userValue;
     }
 
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
     @Override
     public String toString() {
-        return getSubject().getTitle();
+        String value = getSubject().getTitle();
+        if(userValue != null) {
+            value += " with userValue " + userValue;
+        }
+        return value;
     }
+
+
 }

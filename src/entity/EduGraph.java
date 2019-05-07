@@ -1,3 +1,5 @@
+package entity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,5 +35,12 @@ public class EduGraph {
 
     public void setPossibleSubjects(List<StudentSubject> possibleSubjects) {
         this.possibleSubjects = possibleSubjects;
+    }
+
+    public void changeToStarted(StudentSubject subject) {
+        if(possibleSubjects.contains(subject)) {
+            possibleSubjects.remove(subject);
+            startedSubjects.add(subject);
+        }
     }
 }

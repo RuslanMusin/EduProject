@@ -1,3 +1,7 @@
+package entity;
+
+import entity.EduGraph;
+
 public class Student {
 
     private String name;

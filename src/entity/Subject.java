@@ -1,5 +1,8 @@
+package entity;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Subject {
 
@@ -71,5 +74,27 @@ public class Subject {
     public void setSemestr(Integer semestr) {
         this.semestr = semestr;
     }
+
+    @Override
+    public String toString() {
+        return title;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) return true;
+        if (!(o instanceof Subject)) {
+            return false;
+        }
+        Subject subject = (Subject) o;
+        return Objects.equals(title, subject.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title);
+    }
+
 }
 
