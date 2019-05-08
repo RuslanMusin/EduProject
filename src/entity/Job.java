@@ -1,5 +1,7 @@
 package entity;
 
+import util.SimpleStorage;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +16,7 @@ public class Job {
     public Job(String name, Integer count) {
         this.name = name;
         this.count = count;
+        SimpleStorage.market.getJobs().add(this);
     }
 
     public String getName() {

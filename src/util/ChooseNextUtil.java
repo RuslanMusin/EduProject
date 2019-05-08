@@ -9,9 +9,15 @@ import java.util.stream.Collectors;
 
 public class ChooseNextUtil {
 
-    public static StudentSubject chooseNextSubject(Student student) {
+    public static void chooseNextSubject(Student student, StudentSubject subject, Integer markValue) {
+        subject.setMarkValue(markValue);
+        student.getEduGraph().changeToStarted(subject);
+        System.out.println("Choosed Subject " + subject.toString());
+    }
+
+    public static List<StudentSubject> getNextOrderedSubjects(Student student, String block) {
         //Из возможных предметов берем все за текущий семестр
-        List<StudentSubject> subjects = student.getEduGraph().getPossibleSubjects()
+        List<StudentSubject> subjects = student.getEduGraph().getPossibleSubjects(block)
                 .stream().filter(i -> i.getSubject().getSemestr().equals(student.getSemestr())).collect(Collectors.toList());
         System.out.println("possible subjects " + Arrays.toString(subjects.toArray()));
 
@@ -27,10 +33,10 @@ public class ChooseNextUtil {
             // Учитываем влияние рынка. Кол-во вакансий по работам, требования которых пересекаются
             // с тем, что может дать данный предмет (насколько имеет смысл изучать с точки зреиня рынка)
             double jobsValue = findJobsValue(subject);
-            System.out.println("entity.Subject " + subject.toString() + " part pastInterest = " + pastInterest);
-            System.out.println("entity.Subject " + subject.toString() + " part pastMarks = " + pastMarks);
-            System.out.println("entity.Subject " + subject.toString() + " part currentInterest = " + currentInterest);
-            System.out.println("entity.Subject " + subject.toString() + " part jobsValue = " + jobsValue);
+            System.out.println("Subject " + subject.toString() + " part pastInterest = " + pastInterest);
+            System.out.println("Subject " + subject.toString() + " part pastMarks = " + pastMarks);
+            System.out.println("Subject " + subject.toString() + " part currentInterest = " + currentInterest);
+            System.out.println("Subject " + subject.toString() + " part jobsValue = " + jobsValue);
 
             //Вычисляем конечный вес по возможному предмету, учитывая четыре фактора выше
             double value = findPastSubjectsInterest(subject, student)
@@ -38,13 +44,12 @@ public class ChooseNextUtil {
                     + Double.valueOf(subject.getInterestValue())/ SimpleStorage.INTEREST_NORM
                     + findJobsValue(subject);
             subject.setUserValue(value);
-            System.out.println("entity.Subject " + subject.getSubject().getTitle() + " with value = " + subject.getUserValue());
         }
         subjects.sort((o1, o2) -> -o1.getUserValue().compareTo(o2.getUserValue()));
         System.out.println("subject in order " + Arrays.toString(subjects.toArray()));
 
-        //Возвращаем предмет с самым высоким коэффицентом.
-        return subjects.get(0);
+        //Возвращаем предметы
+        return subjects;
     }
 
     private static Double findJobsValue(StudentSubject subject) {
@@ -58,10 +63,10 @@ public class ChooseNextUtil {
     private static List<Job> findRelatedJobs(StudentSubject subject) {
         List<Job> jobs = SimpleStorage.market.getJobs();
         List<Job> relatedJobs = new ArrayList<>();
-        System.out.println("jobs sub req" + Arrays.toString(subject.getSubject().getRequirements().toArray()));
+//        System.out.println("jobs sub req" + Arrays.toString(subject.getSubject().getRequirements().toArray()));
         for(Requirement req: subject.getSubject().getRequirements()) {
             for(Job job: jobs) {
-                System.out.println("jobs req" + Arrays.toString(job.getRequirements().toArray()));
+//                System.out.println("jobs req" + Arrays.toString(job.getRequirements().toArray()));
                 if(job.getRequirements().contains(req) && !relatedJobs.contains(job)) {
                     relatedJobs.add(job);
                 }

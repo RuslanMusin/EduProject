@@ -17,6 +17,7 @@ public class StudentSubject {
         this.interestValue = interestValue;
         this.studentName = student.getName();
         this.subject = subject;
+        student.getEduGraph().getSubjects().add(this);
     }
 
     public StudentSubject(Integer interestValue, Student student, Subject subject) {
@@ -24,7 +25,8 @@ public class StudentSubject {
         this.studentName = student.getName();
         this.subject = subject;
 
-        student.getEduGraph().getPossibleSubjects().add(this);
+        student.getEduGraph().getPossibleSubjects(subject.getBlock()).add(this);
+        student.getEduGraph().getSubjects().add(this);
     }
 
     public Integer getMarkValue() {
@@ -71,7 +73,7 @@ public class StudentSubject {
     public String toString() {
         String value = getSubject().getTitle();
         if(userValue != null) {
-            value += " with userValue " + userValue;
+            value += " with userValue " + String.format("%.2f", userValue);;
         }
         return value;
     }

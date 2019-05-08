@@ -14,6 +14,8 @@ public class SimpleStorage {
     public static int INTEREST_NORM = 10; //макс. значение интереса
     public static int MARK_NORM = 100; //макс. значение оценки
     public static String FORMAT = ".dat";
+    public static int LOW_MARK = 56; //мин. значение оценки для random
+    public static int HIGH_MARK = 101; //макс. значение оценки
 
     public static Random rand = new Random();
 
@@ -70,5 +72,9 @@ public class SimpleStorage {
         new File(fieldStudent + FORMAT).delete();
         new File(fieldMarket + FORMAT).delete();
         new File(fieldEduStandart + FORMAT).delete();
+    }
+
+    public static Integer generateMark() {
+        return rand.nextInt(HIGH_MARK-LOW_MARK) + LOW_MARK;
     }
 }

@@ -1,32 +1,36 @@
 import entity.*;
+import util.ChooseNextUtil;
 import util.SimpleStorage;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static util.ChooseNextUtil.chooseNextSubject;
-import static util.SimpleStorage.rand;
-
-public class ExampleTwo {
+public class InteractiveEx {
 
     private static Scanner sc;
 
 
     public static void main(String args[]) throws IOException, ClassNotFoundException {
-      /*  util.StartExample.startData();
-        util.SimpleStorage.save();*/
-        createNewPart();
-
+        sc = new Scanner(System.in);
+        System.out.println("Выберите дейстивие\n" +
+                "1) Запустить пример\n" +
+                "2) Запустить интерактивный режим");
+        if(sc.hasNextInt()) {
+            int number = sc.nextInt();
+            sc.nextLine();
+            if (number == 1) {
+                util.StartExample.startData();
+                util.SimpleStorage.save();
+            } else {
+                createNewPart();
+            }
+        }
     }
 
     private static void createNewPart() throws IOException, ClassNotFoundException {
         SimpleStorage.load();
         System.out.println("jobs " + Arrays.toString(SimpleStorage.market.getJobs().toArray()));
-        sc = new Scanner(System.in);
         boolean flag = true;
         System.out.println("Выберите действие");
         int number;
@@ -35,12 +39,13 @@ public class ExampleTwo {
             if(sc.hasNextInt()) {
                 number = sc.nextInt();
                 sc.nextLine();
-                if(number == 0) {
+                if(number == -1) {
                     flag = false;
-                    break;
+                    System.exit(-1);
+                } else {
+                    chooseCommand(number);
+                    SimpleStorage.save();
                 }
-                chooseCommand(number);
-                SimpleStorage.save();
             }
         }
 
@@ -49,6 +54,7 @@ public class ExampleTwo {
 
     private static void printMenu() {
         System.out.println(
+                "0) Добавить предметный блок.\n" +
                 "1) Добавить предмет.\n" +
                 "2) Добавить требование к предмету.\n" +
                 "3) Добавить предшествующий предмет.\n" +
@@ -60,10 +66,23 @@ public class ExampleTwo {
         );
     }
 
+    private static void addBlock() {
+        String name = null;
+        System.out.println("Добавление предметного блока");
+        System.out.println("Введите название");
+        if(sc.hasNextLine()) {
+            name = sc.nextLine();
+        }
+        if(name != null) {
+            SimpleStorage.eduStandart.getBlocks().add(name);
+            System.out.println("Предметный блок успешно добавлен!");
+        }
+    }
+
     private static void addSubject() {
         String name = null;
         Integer semestr = null;
-
+        Integer block = null;
         System.out.println("Добавление предмета");
         System.out.println("Введите название");
         if(sc.hasNextLine()) {
@@ -74,9 +93,14 @@ public class ExampleTwo {
             semestr = sc.nextInt();
             sc.nextLine();
         }
+        System.out.println("Выберите предметный блок из предложенных");
+        printBlocks();
+        if(sc.hasNextInt()) {
+            block = sc.nextInt() - 1;
+            sc.nextLine();
+        }
         if(semestr != null && name != null) {
-            Subject sub = new Subject(name, semestr);
-            SimpleStorage.eduStandart.getSubjects().add(sub);
+            Subject sub = new Subject(name, semestr, SimpleStorage.eduStandart.getBlocks().get(block));
             System.out.println("Предмет успешно добавлен!");
         }
     }
@@ -90,11 +114,7 @@ public class ExampleTwo {
             name = sc.nextLine();
         }
         System.out.println("Выберите предмет из предложенных");
-        int i = 1;
-        for(Subject sub: SimpleStorage.eduStandart.getSubjects()) {
-            System.out.println("" + i + ") " + sub.getTitle());
-            i++;
-        }
+        printSubjects();
         if(sc.hasNextInt()) {
             subNum = sc.nextInt() - 1;
             sc.nextLine();
@@ -123,8 +143,9 @@ public class ExampleTwo {
             sc.nextLine();
         }
         if(subNumOne != null && subNumTwo != null) {
-            SimpleStorage.eduStandart.getSubjects().get(subNumOne).getPastSubjects()
-                    .add(SimpleStorage.eduStandart.getSubjects().get(subNumTwo));
+            SimpleStorage.eduStandart.getSubjects().get(subNumOne).addToPastSubjects(
+                    Collections.singletonList(SimpleStorage.eduStandart.getSubjects().get(subNumTwo))
+            );
             System.out.println("Связь между преметами установлена!");
         }
     }
@@ -163,21 +184,44 @@ public class ExampleTwo {
             int number = sc.nextInt();
             sc.nextLine();
             if(number == 1) {
-                List<StudentSubject> list = SimpleStorage.student.getEduGraph().getPossibleSubjects()
-                        .stream()
-                        .filter(it -> it.getSubject().getSemestr() <= SimpleStorage.student.getSemestr())
-                        .collect(Collectors.toList());
-                for(StudentSubject sub: list) {
+                for(String block: SimpleStorage.eduStandart.getBlocks()) {
+                    List<StudentSubject> list = SimpleStorage.student.getEduGraph().getPossibleSubjects(block)
+                            .stream()
+                            .filter(it -> it.getSubject().getSemestr() <= SimpleStorage.student.getSemestr())
+                            .collect(Collectors.toList());
+                /*for(StudentSubject sub: list) {
                     sub.setMarkValue(rand.nextInt(101-56) + 56);
+                }*/
+                /*SimpleStorage.student.getEduGraph().getStartedSubjects().addAll(
+                        list
+                );*/
+                    SimpleStorage.student.getEduGraph().getPossibleSubjects(block).removeAll(
+                            list
+                    );
                 }
-                SimpleStorage.student.getEduGraph().getStartedSubjects().addAll(
-                        list
-                );
-                SimpleStorage.student.getEduGraph().getPossibleSubjects().removeAll(
-                        list
-                );
                 SimpleStorage.student.setSemestr(SimpleStorage.student.getSemestr() + 1);
+                System.out.println("Студент переведен на новый семестр!");
             }
+        }
+    }
+
+    private static void chooseNextSubject() {
+        Integer block = null;
+        System.out.println("Выберите предметный блок из предложенных");
+        printCurrentBlocks();
+        if(sc.hasNextInt()) {
+            block = sc.nextInt() - 1;
+            sc.nextLine();
+        }
+        if(block != null) {
+            List<StudentSubject> list = ChooseNextUtil.getNextOrderedSubjects(SimpleStorage.student, SimpleStorage.eduStandart.getCurrentBlocks().get(block));
+            System.out.println("Выберите предмет из рекомендованных");
+            printSubjectsInOrder(list);
+            if(sc.hasNextInt()) {
+                block = sc.nextInt() - 1;
+                sc.nextLine();
+            }
+            ChooseNextUtil.chooseNextSubject(SimpleStorage.student, list.get(block), SimpleStorage.generateMark());
         }
     }
 
@@ -241,6 +285,30 @@ public class ExampleTwo {
         }
     }
 
+    private static void printBlocks() {
+        int i = 1;
+        for(String sub: SimpleStorage.eduStandart.getBlocks()) {
+            System.out.println("" + i + ") " + sub);
+            i++;
+        }
+    }
+
+    private static void printCurrentBlocks() {
+        int i = 1;
+        for(String block: SimpleStorage.eduStandart.getCurrentBlocks()) {
+            System.out.println("" + i + ") " + block);
+            i++;
+        }
+    }
+
+    private static void printSubjectsInOrder(List<StudentSubject> list) {
+        int i = 1;
+        for(StudentSubject subject: list) {
+            System.out.println("" + i + ") " + subject.getSubject().getTitle() + " with value = " + subject.getUserValue());
+            i++;
+        }
+    }
+
     private static void printSubjects() {
         int i = 1;
         for(Subject sub: SimpleStorage.eduStandart.getSubjects()) {
@@ -282,6 +350,11 @@ public class ExampleTwo {
     private static void chooseCommand(int number) {
         switch (number) {
 
+            case 0: {
+                addBlock();
+                break;
+            }
+
             case 1:  {
                 addSubject();
                 break;
@@ -318,10 +391,27 @@ public class ExampleTwo {
             }
 
             case 8:  {
-                chooseNextSubject(SimpleStorage.student);
+                chooseNextSubject();
+                break;
+            }
+
+            case 9: {
+                printSubjectsTree();
                 break;
             }
         }
 
+
     }
+
+    private static void printSubjectsTree() {
+        String space = " ";
+        List<StudentSubject> subjects = SimpleStorage.student.getEduGraph().getSubjects();
+        for(StudentSubject sub: subjects) {
+            for (int i = 0; i < sub.getSubject().getAllPastSubjects().size(); i++)
+                System.out.print(space);
+            System.out.println(sub.toString());
+        }
+    }
+
 }

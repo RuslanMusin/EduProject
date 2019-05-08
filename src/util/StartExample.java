@@ -2,12 +2,11 @@ package util;
 
 import entity.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static util.ChooseNextUtil.chooseNextSubject;
+import static util.ChooseNextUtil.getNextOrderedSubjects;
 
 
 public class StartExample {
@@ -18,13 +17,17 @@ public class StartExample {
         Student student = new Student("Ruslan", graph);
         SimpleStorage.student = student;
         //Три начальных предмета
-        Subject calcSubject = new Subject("Мат.анализ", 1);
-        Subject algebraSubject = new Subject("Линейная алгебра", 1);
-        Subject discretSubject = new Subject("Дискретная математика", 1);
+       /* String blockOne = "Мат.анализ";
+        String blockTwo = "Линейная алгебра";
+        String blockThree = "Дискретная математика";*/
+//        SimpleStorage.eduStandart.getBlocks().addAll(Arrays.asList(blockOne, blockTwo, blockThree));
+        Subject calcSubject = new Subject("Мат.анализ", 1, "Мат.анализ");
+        Subject algebraSubject = new Subject("Линейная алгебра", 1, "Линейная алгебра");
+        Subject discretSubject = new Subject("Дискретная математика", 1, "Дискретная математика");
 
         //Обязательный предмет за 2 семестр
-        Subject algorithmSubject = new Subject("Алгоритмы и структуры данных", 2);
-        SimpleStorage.eduStandart.getSubjects().addAll(Arrays.asList(calcSubject, algebraSubject, discretSubject, algorithmSubject));
+        Subject algorithmSubject = new Subject("Алгоритмы и структуры данных", 2, "Алгоритмы и структуры данных");
+//        SimpleStorage.eduStandart.getSubjects().addAll(Arrays.asList(calcSubject, algebraSubject, discretSubject, algorithmSubject));
 
         //Пример требований к линейной алгебре
         Requirement algRecOne = new Requirement("Умножение матриц", algebraSubject);
@@ -34,15 +37,17 @@ public class StartExample {
         Job androidJob = new Job("Android разработчик", 3000);
         Job gameDevJob = new Job("Разработчик игр", 4000);
         Job javascriptDevJob = new Job("Javascript разработчик", 11000);
-        SimpleStorage.market.getJobs().addAll(Arrays.asList(androidJob, gameDevJob, javascriptDevJob));
+//        SimpleStorage.market.getJobs().addAll(Arrays.asList(androidJob, gameDevJob, javascriptDevJob));
 
         //Предметы 3 курса
-        Subject androidSubject = new Subject("Android разработка", 3);
-        Subject javascriptSubject = new Subject("Разработка динамических сайтов", 3);
-        Subject gameDevSubject = new Subject("Основы разработки игр", 3);
+        String block = "Практический блок";
+        SimpleStorage.eduStandart.getBlocks().add(block);
+        Subject androidSubject = new Subject("Android разработка", 3, block);
+        Subject javascriptSubject = new Subject("Разработка динамических сайтов", 3, block);
+        Subject gameDevSubject = new Subject("Основы разработки игр", 3, block);
 
-        Subject testSubject = new Subject("Основы тестирования", 5);
-        SimpleStorage.eduStandart.getSubjects().addAll(Arrays.asList(androidSubject, javascriptSubject, gameDevSubject));
+        Subject testSubject = new Subject("Основы тестирования", 5, "Основы тестирования");
+//        SimpleStorage.eduStandart.getSubjects().addAll(Arrays.asList(androidSubject, javascriptSubject, gameDevSubject));
 
         //Требования к предметам и работам
         Requirement androidRecOne = new Requirement("Знание Kotlin", androidSubject);
@@ -63,10 +68,10 @@ public class StartExample {
         javascriptDevJob.getRequirements().addAll(Arrays.asList(javascriptRecOne, javascriptRecTwo, javascriptRecThree, algoRecOne, testRecOne));
 
         //Ставим для предметов предшествующие предметы, которые нужно пройти
-        algorithmSubject.getPastSubjects().addAll(Arrays.asList(algebraSubject, discretSubject, calcSubject));
-        androidSubject.getPastSubjects().addAll(Arrays.asList(algebraSubject, discretSubject, algorithmSubject));
-        javascriptSubject.getPastSubjects().addAll(Arrays.asList(algebraSubject, algorithmSubject));
-        gameDevSubject.getPastSubjects().addAll(Arrays.asList(algebraSubject, discretSubject, calcSubject, algorithmSubject));
+        algorithmSubject.addToPastSubjects(Arrays.asList(algebraSubject, discretSubject, calcSubject));
+        androidSubject.addToPastSubjects(Arrays.asList(algebraSubject, discretSubject, algorithmSubject));
+        javascriptSubject.addToPastSubjects(Arrays.asList(algebraSubject, algorithmSubject));
+        gameDevSubject.addToPastSubjects(Arrays.asList(algebraSubject, discretSubject, calcSubject, algorithmSubject));
 
         //Составляем связь между студентом и предметом (ставим оценку (если пройден), интерес)
         StudentSubject studentAlgebra = new StudentSubject(72, 6, student, algebraSubject);
@@ -89,20 +94,18 @@ public class StartExample {
         //Студент переходит на второй семестр
         student.setSemestr(2);
         //Выбираем предмет исходя из требований. В данном случае выбора нет, так только Алгоритмы.
-        StudentSubject sub = chooseNextSubject(student);
-        System.out.println("Final Sub " + sub.getSubject().getTitle() + " with value = " + sub.getUserValue());
-
+        List<StudentSubject> subs = getNextOrderedSubjects(student, algorithmSubject.getBlock());
+        chooseNextSubject(student, subs.get(0), SimpleStorage.generateMark());
         //Меняем структуру графа после прохждения Алгоритмов
-        student.getEduGraph().changeToStarted(studentAlgo);
-//        student.getEduGraph().getPossibleSubjects().addAll(Arrays.asList(studentAndroid, studentJavascript, studentGameDev));
-        studentAlgo.setMarkValue(84);
+      /*  student.getEduGraph().changeToStarted(studentAlgo);
+        studentAlgo.setMarkValue(84);*/
 
         //Студент переходит на третий семестр
         student.setSemestr(3);
         //Выбираем предмет исходя из требований. В данном случае выбор есть
         //Программой предлагается предмет с самым высоким коэффицентом
-        sub = chooseNextSubject(student);
-        System.out.println("Final Sub " + sub.getSubject().getTitle() + " with value = " + sub.getUserValue());
+        subs = getNextOrderedSubjects(student, block);
+        chooseNextSubject(student, subs.get(0), SimpleStorage.generateMark());
     }
 
 }
